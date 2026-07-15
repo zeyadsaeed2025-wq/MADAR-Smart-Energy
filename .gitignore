@@ -1,0 +1,64 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+
+# Nested repos
+MadarElectric/
+
+# Build output
+dist/
+build/
+*.egg-info/
+
+# Environment variables (NEVER commit)
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Logs
+*.log
+logs/
+control_service.log
+control_service.log.*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+test_*.jpg
+debug_*.jpg
+test_*.py
+*.tmp
+*.bak
+
+# Arduino build artifacts
+*.hex
+*.elf
+*.o
+
+# Vite cache
+.vite/
+
+# Python cache
+*.pyc
+__pycache__/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Misc
+*.tgz
+*.tar.gz
