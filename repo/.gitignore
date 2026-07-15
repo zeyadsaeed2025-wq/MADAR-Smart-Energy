@@ -10,3 +10,4 @@ test_*.jpg
 test_*.py
 *.html
 *_files/
+.vercel
