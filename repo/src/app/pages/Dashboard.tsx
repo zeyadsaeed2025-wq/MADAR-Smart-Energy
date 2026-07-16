@@ -380,18 +380,20 @@ export function Dashboard() {
     lastReadingTime: null,
     lastError: null,
   });
+  const [arduinoConnected, setArduinoConnected] = useState(false);
   const [editingTarget, setEditingTarget] = useState(false);
   const [newTarget, setNewTarget] = useState("25");
 
   const fetchData = useCallback(async () => {
     try {
-      const [latestRes, historyRes, planRes, autoRes, timelineRes, ocrRes] = await Promise.allSettled([
+      const [latestRes, historyRes, planRes, autoRes, timelineRes, ocrRes, hwRes] = await Promise.allSettled([
         fetch(`${API}/api/latest`),
         fetch(`${API}/api/readings`),
         fetch(`${API}/api/daily-plan`),
         fetch(`${API}/api/automation`),
         fetch(`${API}/api/timeline`),
         fetch(`${API}/api/ocr/status`),
+        fetch(`${API}/api/hardware/health`),
       ]);
 
       if (latestRes.status === "fulfilled") {
@@ -439,6 +441,11 @@ export function Dashboard() {
           lastReadingTime: data.lastReadingTime || null,
           lastError: data.lastError || null,
         });
+      }
+
+      if (hwRes.status === "fulfilled") {
+        const data = await hwRes.value.json();
+        setArduinoConnected(data.connected === true);
       }
     } catch {
       setConnectionStatus("offline");
@@ -589,6 +596,19 @@ export function Dashboard() {
                 )}
                 <p className="text-xs text-gray-500 mt-2">
                   آخر قراءة: {ocrStatus.lastReadingTime ? new Date(ocrStatus.lastReadingTime).toLocaleTimeString("ar-EG") : "--"}
+                </p>
+              </div>
+            </GlassCard>
+
+            <GlassCard hover>
+              <div>
+                <p className="text-sm text-gray-400 mb-3">حالة Arduino</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-2 h-2 rounded-full ${arduinoConnected ? "bg-[#00ff88] animate-pulse" : "bg-[#ff4444]"}`} />
+                  <span className="text-sm font-medium text-white">{arduinoConnected ? "Arduino متصل" : "Arduino غير متصل"}</span>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {arduinoConnected ? "LEDs جاهزة للتحكم عبر Python Service" : "الاتصال مقطوع - أعد الاتصال"}
                 </p>
               </div>
             </GlassCard>

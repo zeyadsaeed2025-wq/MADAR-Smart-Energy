@@ -267,7 +267,28 @@ function addSimTimelineEvent(type, message) {
   console.log(`[SimTimeline] ${type}: ${message}`);
 }
 
-app.get("/api/admin/simulation/status", (req, res) => {
+app.get("/api/admin/simulation/status", async (req, res) => {
+  try {
+    systemStatus.esp32Camera.status = ocrStatus.cameraConnected ? "online" : "offline";
+    systemStatus.esp32Camera.label = ocrStatus.cameraConnected ? "متصل" : "غير متصل";
+    systemStatus.ocrEngine.status = ocrStatus.totalReadings > 0 ? "online" : "waiting";
+    systemStatus.ocrEngine.label = ocrStatus.totalReadings > 0 ? "جاهز" : "انتظار";
+
+    try {
+      const hwHealth = await proxyToPython("GET", "/api/health");
+      systemStatus.arduino.status = hwHealth.connected ? "online" : "offline";
+      systemStatus.arduino.label = hwHealth.connected ? "متصل" : "غير متصل";
+      systemStatus.arduino.lastPing = new Date().toISOString();
+    } catch {
+      systemStatus.arduino.status = "offline";
+      systemStatus.arduino.label = "Python offline";
+    }
+
+    systemStatus.websiteServer.status = "online";
+    systemStatus.websiteServer.lastPing = new Date().toISOString();
+  } catch (e) {
+    // ignore
+  }
   res.json({ simulationMode, state: simulationState, systemStatus });
 });
 

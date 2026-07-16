@@ -213,6 +213,7 @@ class SerialManager:
                 serial_logger.error(f"Serial error sending '{command}': {e}")
                 self._connection_info.status = ConnectionStatus.DISCONNECTED
                 self._connection_info.last_error = str(e)
+                self._force_close()
                 return False, f"SERIAL_ERROR: {e}"
 
             except Exception as e:
@@ -284,6 +285,7 @@ class SerialManager:
                 serial_logger.error(f"Serial error in multiline '{command}': {e}")
                 self._connection_info.status = ConnectionStatus.DISCONNECTED
                 self._connection_info.last_error = str(e)
+                self._force_close()
                 return False, f"SERIAL_ERROR: {e}"
 
             except Exception as e:
@@ -356,6 +358,21 @@ class SerialManager:
                 return self._serial.is_open
             except Exception:
                 return False
+
+    def _force_close(self) -> None:
+        """Force close the serial port on error. Called while lock is held."""
+        try:
+            if self._serial:
+                self._serial.close()
+        except Exception:
+            pass
+        self._serial = None
+        self._connection_info.status = ConnectionStatus.DISCONNECTED
+        self._connection_info.disconnected_at = time.time()
+        if _ds:
+            _ds.connected = False
+            _ds.add_event("ERR", "Serial port force-closed after error", "red")
+        serial_logger.warning("Serial port force-closed")
 
     def _log_room_command(self, command: str, response: str) -> None:
         """
